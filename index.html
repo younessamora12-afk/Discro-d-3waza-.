@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Room</title>
+
+<style>
+body{
+margin:0;
+background:#0b0f1a;
+font-family:Arial;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.app{
+width:350px;
+background:#131b2e;
+border-radius:25px;
+padding:20px;
+box-shadow:0 0 30px #000;
+}
+
+h1{
+text-align:center;
+color:#00ffae;
+}
+
+.room{
+background:#1b2740;
+padding:15px;
+border-radius:15px;
+text-align:center;
+margin-bottom:20px;
+}
+
+.room span{
+color:#00ffae;
+font-weight:bold;
+}
+
+.users{
+display:flex;
+flex-wrap:wrap;
+gap:15px;
+justify-content:center;
+}
+
+.user{
+width:90px;
+height:110px;
+background:#1c2335;
+border-radius:20px;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+position:relative;
+transition:0.2s;
+}
+
+.user img{
+width:55px;
+height:55px;
+border-radius:50%;
+border:3px solid #555;
+}
+
+.user p{
+margin-top:8px;
+font-size:14px;
+}
+
+.mute{
+position:absolute;
+top:8px;
+right:8px;
+background:red;
+width:22px;
+height:22px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:12px;
+}
+
+.speaking{
+border:3px solid #00ffae;
+box-shadow:0 0 20px #00ffae;
+transform:scale(1.05);
+}
+
+button{
+padding:12px 25px;
+border:none;
+border-radius:15px;
+background:#00ffae;
+color:black;
+font-weight:bold;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>VOICE ROOM</h1>
+
+<div class="room">
+ROOM ID :
+<span id="roomId"></span>
+</div>
+
+<div class="users">
+
+<div class="user speaking" id="me">
+<div class="mute" id="muteIcon">🎤</div>
+<img src="https://i.imgur.com/6VBx3io.png">
+<p>YOU</p>
+</div>
+
+<div class="user">
+<div class="mute">🔇</div>
+<img src="https://i.imgur.com/6VBx3io.png">
+<p>PLAYER 1</p>
+</div>
+
+<div class="user">
+<div class="mute">🎤</div>
+<img src="https://i.imgur.com/6VBx3io.png">
+<p>PLAYER 2</p>
+</div>
+
+</div>
+
+<div style="text-align:center;margin-top:20px;">
+<button onclick="toggleMute()">MUTE</button>
+</div>
+
+</div>
+
+<script>
+
+const room = "ROOM-" + Math.floor(Math.random()*9999);
+document.getElementById("roomId").innerText = room;
+
+let muted = false;
+
+async function startMic(){
+
+const stream = await navigator.mediaDevices.getUserMedia({
+audio:true
+});
+
+const audioContext = new AudioContext();
+const analyser = audioContext.createAnalyser();
+
+const mic = audioContext.createMediaStreamSource(stream);
+mic.connect(analyser);
+
+const data = new Uint8Array(analyser.frequencyBinCount);
+
+function checkVoice(){
+
+analyser.getByteFrequencyData(data);
+
+let volume = data.reduce((a,b)=>a+b)/data.length;
+
+const me = document.getElementById("me");
+
+if(volume > 20 && !muted){
+me.classList.add("speaking");
+}else{
+me.classList.remove("speaking");
+}
+
+requestAnimationFrame(checkVoice);
+}
+
+checkVoice();
+}
+
+startMic();
+
+function toggleMute(){
+muted = !muted;
+
+const icon = document.getElementById("muteIcon");
+
+icon.innerText = muted ? "🔇" : "🎤";
+}
+
+</script>
+
+</body>
+</html>
